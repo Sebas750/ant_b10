@@ -1,0 +1,20 @@
+description: u-blox ANT-B10 AOA antenna
+
+compatible: "u-blox,ant-b10"
+
+include: uart-device.yaml
+
+properties:
+  enable-gpios:
+    required: true
+    type: phandle-array
+    description: ANT_B10 enable pin.
+  
+  status-gpios:
+    required: true
+    type: phandle-array
+    description: ANT_B10 status pin.
+
+
+
+    

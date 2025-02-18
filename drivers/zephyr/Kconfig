@@ -1,0 +1,4 @@
+menu "Drivers"
+rsource "aoa/Kconfig"
+endmenu
+

@@ -1,0 +1,307 @@
+config ANT_B10
+	bool "U-blox ANT-B10 AOA antenna Driver"
+	depends on DT_HAS_U_BLOX_ANT_B10_ENABLED
+	select MODEM_MODULES
+	select MODEM_CHAT           
+	select MODEM_PIPE
+	select MODEM_BACKEND_UART
+	help
+	  Enable U-blox ANT-B10 AOA antenna driver support.
+
+if ANT_B10
+
+config ANT_B10_RECEIVER
+	bool "ANT-B10 receiver helper driver"
+	depends on SERIAL_SUPPORT_INTERRUPT
+	select UART_INTERRUPT_DRIVEN
+	select RING_BUFFER
+	help
+	  This driver allows modem drivers to communicate over UART with custom
+	  defined protocols. Driver doesn't inspect received data and all
+	  aspects of received protocol data are handled by application via
+	  work method provided.  This driver differs from the pipe UART driver
+	  in that callbacks are executed in a different work queue and data is
+
+# Library configuration
+config ANT_B10_WAKEUP_TIME_MS
+	int "The time in milliseconds to wait for the ANT-B10 to wake up."
+	default 1700
+
+config ANT_B10_WAKE_GPIO_DOWN_TIME_MS
+	int "The time in milliseconds to keep the wake GPIO low."
+	default 50
+
+config ANT_B10_SLEEP_TIME_MS
+	int "Sleep script timeout in milliseconds."
+	default 50
+
+config ANT_B10_SCRIPT_TIMEOUT_S
+	int "The time in seconds to wait for the ANT-B10 to respond to a command."
+	default 5
+
+config ANT_B10_UART_BUFFER_SIZES
+	int "The UART receive and transmit buffer sizes in bytes."
+	default 128
+
+config ANT_B10_CHAT_BUFFER_SIZES
+	int "The size of the buffers used for the chat scripts in bytes."
+	default 128
+
+config ANT_B10_METADATA_SIZE
+	int "The size of the metadata buffers in bytes."
+	default 16
+
+config ANT_B10_ECHO
+	bool "Enable echo of the received data."
+	default y
+	help
+		Useful for debugging.
+
+config ANT_B10_RED_LED_STATE
+	bool "Red led state."
+	default n
+	help
+		n: Off
+		y: On
+
+config ANT_B10_GREEN_LED_STATE
+	bool "Green led state."
+	default n
+	help
+		n: Off
+		y: On
+
+config ANT_B10_BLUE_LED_STATE
+	bool "Blue led state."
+	default n
+	help
+		n: Off
+		y: On
+
+config ANT_B10_UUDFCFG
+	bool "Enable UDFCFG configuration."
+	default y
+	help
+		Enable UDFCFG configuration.
+
+if ANT_B10_UUDFCFG
+
+# UDFCFG configuration
+config ANT_B10_UUDFCFG_MINIMUN_TAG_EVENT_TIME_MS 				# tag 1
+	int "Minimum interval between +UUDF events for each tag in milliseconds."
+	range 0 10000
+	default 1
+	help
+		+UUDF events can arrive at a higher frequency if multiple tags are tracked.
+		This setting is used if the host can’t handle the rate of +UUDF events
+		generated or when debugging to get less outputs. In a real scenario, 
+		it is better to just throw away the +UUDF events on host if they cannot be processed.
+
+config ANT_B10_UUDFCFG_USER_DEFINED_STRING 						# tag 2
+	string "User defined string to be sent in +UUDF event."
+	default ""
+	help
+		MAXIMUM lenght is 30 characters."
+
+config ANT_B10_UUDCFG_ANGLE_CALCULATION_STARTUP 				# tag 3
+	int "Enable angle calculation at startup."
+	range 0 1
+	default 0
+	help
+		0: Disaled
+		1: Enabled
+
+config ANT_B10_UUDCFG_ANGLE_CALCULATION_BOTH 					# tag 5
+	int "Enable angle calculation for both azimuth and elevation angles."
+	range 0 1
+	default 1
+	help
+		0: Only the direct angle is calculated and output in +UUDF event, 
+		1: Two angles are calculated and output in +UUDF event. Depending on the 
+		configuration of ANT_B10_UUDCFG_ANGLE_TYPE, the two angles are calculated 
+		as an azimuth/direct angle and an elevation angle.
+
+config ANT_B10_UUDCFG_MEASUREMENT_FORMAT 						# tag 7
+	int "Measurement format."
+	range 0 2
+	default 0
+	help
+		0: ASCII format
+		1: Not implemented by U-blox yet (DON'T USE)
+		2: Binary format (see u-locateEmbed AT command manual, pag 23 for details)
+
+config ANT_B10_UUDCFG_ANGLE_POSTPROCESSING 						# tag 8
+	int "Activate post processing of the angle. It is advisable to keep this enabled."
+	range 0 1
+	default 1
+	help
+		0: Disabled
+		1: Enabled
+
+config ANT_B10_UUDCFG_EVENT_TIME_MS 							# tag 9
+	int "Minimum time between +UUDFP events in milliseconds."
+	range 0 60000
+	default 1000
+	help
+	   0 means output all received advertising events.
+
+config ANT_B10_UUDCFG_ACCEPTED_LAG_FOR_ANGLE 					# tag 10
+	int "Accepted lag for angle factor."
+	range 1 100
+	default 20
+	help
+		This parameter is a factor and setting it lower means that less 
+		smoothing is applied to the received angle values, which results in 
+		lower lag but more unstable reported angle values.
+		The amount of smoothing depends on the tag packet rate. If a tag changes 
+		advertising interval, the rate adjusts dynamically to keep the lag constant.
+
+config ANT_B10_UUDCFG_FIXED_SMOOTHING_FACTOR 					# tag 11
+	int "Fixed smoothing factor."
+	range 0 100
+	default 0
+	help
+		This overrides tag 10 and skips dynamic adjustment of how much 
+		smoothing/post processing is done. Setting this parameter to a 
+		lower value means more postprocessing is applied to the reported angles. 
+		This results in a smoother range of reported angles but with provides less
+		direct feedback on the movement of tracked tags.
+
+config ANT_B10_UUDCFG_STOP_SCANNING_DEFINED_BY_FILTER 			# tag 12
+	int "Stop scanning when all tags in user defined tag filter are synced."
+	range 0 1
+	default 0
+	help
+		0: running background scanning.
+		1: stop background scanning.
+
+config ANT_B10_UUDCFG_ANGLE_TYPE 								# tag 13
+	int "Angle types."
+	range 0 1
+	default 1
+	help
+	  	0: Direct angle
+		1: Azimuth angle
+		For angle definitions, see also the ANT-B10 SIM.
+
+config ANT_B10_UUDCFG_OUTPUT_ENABLED 							# tag 14
+	int "Configure whether to output +UUDFP events."
+	range 0 1
+	default 0
+	help
+		0: Enabled
+		1: Disabled
+
+config ANT_B10_UUDCFG_USE_RFU_FIELD_FOR_ADVERTISING 			# tag 15
+	int "Use RFU field for advertising data."
+	range 0 1
+	default 0
+	help
+	  	If enabled the data from the RFU fields of the Eddystone advertisement 
+		will be displayed in the user_defined_str field of the Angle calculation event +UUDF event.
+		0: Enabled
+		1: Disabled
+
+endif
+
+config ANT_B10_UDFSCANCFG
+	bool "Enable UDFSCANCFG configuration."
+	default y
+	help
+		Enable UDFSCANCFG configuration.
+
+if ANT_B10_UDFSCANCFG
+
+# UDFSCANCFG configuration
+config ANT_B10_UDFSCANCFG_TAG_DROPPED_TIME_MS 					# tag 1
+	int "Time in milliseconds before a tag is dropped."
+	range 1000 2147483647
+	default 5000
+	help
+		With 25+ tags: Define how long a tag is tracked before it 
+		is dropped and scanning for other tags is resumed.
+
+config ANT_B10_UDFSCANCFG_TAG_EVENTS_BEFORE_DROP 				# tag 2
+	int "Number of events before a tag is dropped."
+	range 1 2147483647
+	default 9
+	help
+		With 25+ tags: Define how many +UUDF events are sent to the host before a tag is dropped. 
+		The tag is dropped earlier if the param ANT_B10_UUDFCFG_MINIMUN_TAG_EVENT_TIME_MS timeout 
+		is reached before the specified number of angle events.
+
+config ANT_B10_UDFSCANCFG_TAG_FORGET_TIME_MS 					# tag 3
+	int "Time in milliseconds before a tag is forgotten."
+	range 1000 2147483647
+	default 30000
+	help
+		Define the length of time before u-locateEmbed “forgets” a tag when no packets
+		are received from it, for example if the tag moves out of range. u-locateEmbed 
+		attempts to sync the tag for the specified time.
+
+config ANT_B10_UDFSCANCFG_TAG_SYNC_ATTEMPTS 					# tag 4
+	int "Number of attempts to sync a tag."
+	range 1 2147483647
+	default 2
+	help
+		Define how many times u-locateEmbed attempts to sync to a tag before attempting 
+		to sync to the next visible tag.
+
+
+config ANT_B10_UDFSCANCFG_TAG_SYNC_TIME_MS 						# tag 5
+	int "Time in milliseconds for each sync attempt."
+	range 1000 2147483647
+	default 10000
+	help
+		Define how long each sync attempt to a tag lasts. Use ANT_B10_UDFSCANCFG_TAG_SYNC_ATTEPTS
+		define the number of sync attempts.
+
+
+config ANT_B10_UDFSCANCFG_SIMULTANEOUS_TAGS						# tag 6
+	int "Number of tags that can be tracked simultaneously."
+	range 1 25
+	default 25
+	help
+		Define how many tags u-locateEmbed can track simultaneously 
+		before moving to the round robin scheme.
+
+config ANT_B10_UDFSCANCFG_SIMULTANEOUS_SYNC_TAGS 				# tag 7
+	int "Number of tags that can be try to be synced simultaneously."
+	range 1 50
+	default 50
+	help
+		Define how many tags u-locateEmbed can try to sync to at the same time. 
+		Recommended to keep as default.
+
+config ANT_B10_UDFSCANCFG_SCAN_INTERVAL_MS 						# tag 8
+	int "Scan interval in milliseconds."
+	range 4 16384
+	default 16
+	help
+		Scan interval. Define the radio scan interval for new tags. The entered value must be 
+		greater or equal to that configured in ANT_B10_UDFSCANCFG_SCAN_WINDOW_MS.
+		Each unit value represents 0.625 ms.
+		The default value is 16 x 0.625 ms = 10 ms.
+
+config ANT_B10_UDFSCANCFG_SCAN_WINDOW_MS			 			# tag 9
+	int "Scan window in milliseconds."
+	range 4 16384
+	default 16
+	help
+		Scan window. Define how long the radio scan for tags during each interval. 
+		The entered value must be smaller or equal to that configured in ANT_B10_UDFSCANCFG_SCAN_INTERVAL_MS.
+		Each unit value represents 0.625 ms.
+		The default value is 16 x 0.625 ms = 10 ms.
+
+config ANT_B10_UDFSCANCFG_RSSI_THRESHOLD_DBM					# tag 10
+	int "RSSI threshold for tag detection in dBm."
+	range -105 0
+	default -105
+	help
+		Tags with an RSSI that is less than the specified value are not tracked. 
+		Tags that are already tracked but then later show a diminished strength that is less
+		than the specified RSSI threshold are removed.
+
+endif
+
+endif
