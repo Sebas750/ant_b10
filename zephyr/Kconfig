@@ -1,3 +1,5 @@
+menu "Drivers"
+
 config ANT_B10
 	bool "U-blox ANT-B10 AOA antenna Driver"
 	depends on DT_HAS_U_BLOX_ANT_B10_ENABLED
@@ -305,3 +307,5 @@ config ANT_B10_UDFSCANCFG_RSSI_THRESHOLD_DBM					# tag 10
 endif
 
 endif
+
+endmenu
